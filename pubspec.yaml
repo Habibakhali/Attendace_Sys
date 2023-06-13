@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   vertical_tabs_flutter: ^1.0.0
   image_picker: ^0.8.7+1
-  excel: ^2.1.0
+  excel: ^2.0.1
   path_provider: ^2.0.5
   permission_handler: ^6.0.0
   open_file: ^3.0.1

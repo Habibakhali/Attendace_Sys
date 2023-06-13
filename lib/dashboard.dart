@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' as exc;
 // import 'package:path_provider/path_provider.dart';
 import 'api/api_manager.dart';
+import 'api_model/Attandance.dart';
 import 'exceldata.dart';
 import 'package:path/path.dart' as path;
 
@@ -27,7 +28,7 @@ class _DashboardMainScreenState extends State<DashboardMainScreen> {
   //   AttendanceDate(Name: 'Mohammed Medhat', Id: '14253362', TotalPresant: '88%', )
   //       .toList(),
   // ];
-  final List<List<dynamic>> Data2 = [
+  final List<dynamic> Data2 = [
     AttendanceDate(
       Name: 'Salma Salah ',
       Id: "14253351",
@@ -66,7 +67,7 @@ class _DashboardMainScreenState extends State<DashboardMainScreen> {
   ];
 
   // String filePath = 'exported_file.xlsx';
-  void exportToExcel(List<List<dynamic>> data, String filePath) {
+  void exportToExcel(List<dynamic> data, String filePath) {
     var excel = exc.Excel.createExcel();
     var sheet = excel['Sheet1'];
 
@@ -108,7 +109,7 @@ class _DashboardMainScreenState extends State<DashboardMainScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FutureBuilder(
+            FutureBuilder<Attandence>(
                 future: ApiManeger.GetStudentsAttandance(),
                 builder: (BuildContext, snapshot) {
                   var data = snapshot.data?.count;
@@ -119,7 +120,7 @@ class _DashboardMainScreenState extends State<DashboardMainScreen> {
                   if (snapshot.hasError) {
                     return Text(snapshot.error.toString());
                   }
-                  List<AttendanceDate> AttendData =
+                 /* List<dynamic> AttendData =
                       snapshot.data?.results!.map((attend) {
                             return AttendanceDate(
                                 Id: '${attend.id}' ?? '1',
@@ -127,7 +128,16 @@ class _DashboardMainScreenState extends State<DashboardMainScreen> {
                                 TotalPresant:
                                     "${attend.attendancePercentage}" ?? '20%');
                           }).toList() ??
-                          [];
+                          [];*/
+
+                  List<dynamic> AttendData =[];
+                  for(int i=0;i<snapshot.data!.results!.length!;i++){
+                    Student std= snapshot.data!.results![i].student!;
+                    AttendData.insert(AttendData.length, AttendanceDate(
+                        Id: '${snapshot.data!.results![i].id}' ?? '1',
+                        Name: '${std.firstName} ${std.lastName}' ?? 'malak',
+                        TotalPresant: "${snapshot.data!.results![i].attendancePercentage}" ?? '20%').toList());
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(left: 80),
                     child: Center(

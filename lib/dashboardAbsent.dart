@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:excel/excel.dart' as exc;
 // import 'package:path_provider/path_provider.dart';
 import 'api/api_manager.dart';
+import 'api_model/Attandance.dart';
 import 'exceldata.dart';
 import 'package:path/path.dart' as path;
 
@@ -116,137 +117,143 @@ class _DashboardAbsentState extends State<DashboardAbsent> {
                 if (snapshot.hasError) {
                   return Text(snapshot.error.toString());
                 }
-                List<AttendanceDate> AbsentData =
-                    snapshot.data?.results!.map((attend) {
-                          return AttendanceDate(
-                              Id: '${attend.id}',
-                              Name: attend.student?.firstName,
-                              TotalPresant: "${attend.absentPercentage}");
-                        }).toList() ??
-                        [];
+                List<dynamic> attData =[];
+                for(int i=0;i<snapshot.data!.results!.length!;i++){
+                  Student std= snapshot.data!.results![i].student!;
+                  attData.insert(attData.length, AttendanceDate(
+                      Id: '${snapshot.data!.results![i].id}' ?? '1',
+                      Name: '${std.firstName} ${std.lastName}' ?? 'malak',
+                      TotalPresant: "${snapshot.data!.results![i].attendancePercentage}" ?? '20%').toList());
+                }
                 return Padding(
                   padding: const EdgeInsets.only(left: 80),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  child: Row(
                     children: [
-                      Row(
+                      SizedBox(width: MediaQuery.of(context).size.width*0.27,),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(
-                            width: 10,
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 10,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 50,
-                      ),
-                      Center(
-                        child: Row(
-                          children: [
-                            Column(
+                          SizedBox(
+                            height: 50,
+                          ),
+                          Center(
+                            child: Row(
                               children: [
-                                Row(
+                                Column(
                                   children: [
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        "Absence",
-                                        style: TextStyle(
-                                            color: Color(0xE0FF686D),
-                                            fontSize: 20),
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Absence",
+                                            style: TextStyle(
+                                                color: Color(0xE0FF686D),
+                                                fontSize: 20),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 110,
+                                        ),
+                                        MaterialButton(
+                                          onPressed: () {
+                                            var filePath = 'exported_file.xlsx';
+                                            exportToExcel(attData.cast<List>(), filePath);
+                                          },
+                                          child: Container(
+                                            height: 30,
+                                            width: 100,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              color: Colors.red.withOpacity(0.8),
+                                            ),
+                                            child: const Center(
+                                                child: Text(
+                                              "Export",
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.black),
+                                            )),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(
-                                      width: 110,
-                                    ),
-                                    MaterialButton(
-                                      onPressed: () {
-                                        var filePath = 'exported_file.xlsx';
-                                        exportToExcel(Data2, filePath);
-                                      },
-                                      child: Container(
-                                        height: 30,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                    Container(
+                                      padding: const EdgeInsets.all(8.0),
+                                      margin: const EdgeInsets.all(8.0),
+                                      height:
+                                          MediaQuery.of(context).size.height * 0.60,
+                                      // width: MediaQuery.of(context).size.width*0.40,
+
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        border: Border.all(
                                           color: Colors.red.withOpacity(0.8),
                                         ),
-                                        child: const Center(
-                                            child: Text(
-                                          "Export",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black),
-                                        )),
+                                      ),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: DataTable(
+                                            headingRowColor:
+                                                MaterialStateColor.resolveWith(
+                                                    (states) => Colors.red
+                                                        .withOpacity(0.8)),
+                                            columns: const [
+                                              DataColumn(
+                                                label: Text(
+                                                  'Name',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                              DataColumn(
+                                                label: Text(
+                                                  'User ID',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                              DataColumn(
+                                                label: Text(
+                                                  'Rate',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
+                                            rows: (snapshot.data?.results ?? [])
+                                                .map((attend) {
+                                              return DataRow(cells: [
+                                                DataCell(Text(
+                                                    '${attend.student?.firstName}')),
+                                                DataCell(Text('${attend.id}')),
+                                                DataCell(Text(
+                                                    '${attend.attendancePercentage}%')),
+                                              ]);
+                                            }).toList(),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(8.0),
-                                  margin: const EdgeInsets.all(8.0),
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.60,
-                                  // width: MediaQuery.of(context).size.width*0.40,
-
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    border: Border.all(
-                                      color: Colors.red.withOpacity(0.8),
-                                    ),
-                                  ),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DataTable(
-                                        headingRowColor:
-                                            MaterialStateColor.resolveWith(
-                                                (states) => Colors.red
-                                                    .withOpacity(0.8)),
-                                        columns: const [
-                                          DataColumn(
-                                            label: Text(
-                                              'Name',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                          DataColumn(
-                                            label: Text(
-                                              'User ID',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                          DataColumn(
-                                            label: Text(
-                                              'Rate',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ],
-                                        rows: AbsentData.map((data) {
-                                          return DataRow(cells: [
-                                            DataCell(Text(
-                                                '${data.Name}')),
-                                            DataCell(Text('${data.Id}')),
-                                            DataCell(Text(
-                                                '${data.TotalPresant}%')),
-                                          ]);
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                )
                               ],
-                            )
-                          ],
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
